@@ -4,9 +4,13 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.sanbing.common.constant.Constant;
+import com.sanbing.common.utils.Dingding;
 import com.sanbing.service.spred.SpredService;
+import com.taobao.api.ApiException;
 import constant.constant;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.text.DecimalFormat;
@@ -15,6 +19,9 @@ import java.util.*;
 @Slf4j
 @Service
 public class SpredServiceImpl implements SpredService {
+
+    @Value("${zb_bina}")
+    private double zb_bina;
 
     @Override
     public JSONArray getSpred() {
@@ -46,10 +53,36 @@ public class SpredServiceImpl implements SpredService {
         return jsonArraySort(result);
     }
 
+    @Scheduled(fixedRate = 10 * 60 * 1000)
+    @Override
+    public void sendMessage() {
+        String message = "";
+        JSONArray data = getSpred();
+        for (int i = 0; i < data.size(); i++) {
+            JSONObject json = data.getJSONObject(i);
+            String symbol = json.getString("symbol");
+            double zb_price = json.getDoubleValue("zb_price");
+            double bina_price = json.getDoubleValue("bina_price");
+            double spred = json.getDoubleValue("spred");
+            if (Math.abs(spred) > zb_bina) {
+                message = message + "交易对：" + symbol + "\n中币价格：" + zb_price + "\n币安价格: " + bina_price + "\n差价：" + spred + "‰\n\n";
+
+            }
+        }
+        if (!message.isEmpty()) {
+            try {
+                Dingding.sendMessage(message);
+            } catch (ApiException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
     /*
     jsonArray按照字段排序
      */
-    public static JSONArray jsonArraySort(JSONArray jsonArray){
+    public static JSONArray jsonArraySort(JSONArray jsonArray) {
 
         //存放排序后的jsonArray
         JSONArray sortedJsonArray = new JSONArray();
@@ -71,7 +104,7 @@ public class SpredServiceImpl implements SpredService {
                     e.printStackTrace();
                 }
 
-                return Double.compare(Math.abs(valueB) ,Math.abs(valueA));
+                return Double.compare(Math.abs(valueB), Math.abs(valueA));
             }
         });
         sortedJsonArray = JSONArray.parseArray(JSON.toJSONString(list));

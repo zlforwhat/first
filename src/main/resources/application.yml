@@ -8,3 +8,6 @@ server:
 
 #钉钉消息
 Webhook: https://oapi.dingtalk.com/robot/send?access_token=3f9be356eecca23426b86160d453a7d47f3d661f304e314fab4787cdacca3f32
+
+#差价
+zb_bina: 10
