@@ -6,5 +6,9 @@ public interface SpredService {
 
     JSONArray getSpred();
 
+    JSONArray getZbBinaSpred();
+
     void sendMessage();
+
+
 }

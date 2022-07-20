@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>zb_币安差价</title>
+    <title>ftx_币安差价</title>
     <meta name="renderer" content="webkit">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -18,18 +18,18 @@
 
 <script>
 
-function getSpred(){
+function getZbBinaSpred(){
 layui.use('table', function(){
   var table = layui.table;
   table.render({
     elem: '#test'
-    ,url:'/spred/getSpred'
+    ,url:'/spred/getZbBinaSpred'
     ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
     ,cols: [[
       {field:'symbol', width:180, title: 'symbol', sort: true}
-      ,{field:'zb_price', width:180, title: 'zb价格', sort: true}
+      ,{field:'ftx_price', width:180, title: 'ftx价格', sort: true}
       ,{field:'bina_price', width:180, title: 'bina价格', sort: true}
-      ,{field:'spred', width:180, title: 'zb_bina差价', sort: true}
+      ,{field:'spred', width:180, title: 'ftx_bina差价', sort: true}
     ]]
   });
 });
@@ -38,7 +38,7 @@ layui.use('table', function(){
 //刷新事件
 var btn = document.getElementById("refresh");
 		btn.onclick=function(){
-			getSpred();
+			getZbBinaSpred();
 		}
 
 </script>

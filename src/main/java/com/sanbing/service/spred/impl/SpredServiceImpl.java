@@ -29,23 +29,57 @@ public class SpredServiceImpl implements SpredService {
 
         try {
             //zb交易对
-            for (Map.Entry<String, String> entry : constant.ZB_CONTRACT_PRICE_MAP.entrySet()) {
-                String symbol = entry.getKey();
-                //bina交易对
-                for (Map.Entry<String, String> entry2 : Constant.BINA_CONTRACT_PRICE_MAP.entrySet()) {
-                    if ((symbol.split("_")[0]).equals(entry2.getKey().split("USDT")[0])) {
-                        JSONObject json = new JSONObject();
-                        double zb_price = Double.valueOf(entry.getValue());
-                        double bina_price = Double.valueOf(entry2.getValue());
-                        double spred = ((zb_price - bina_price) / bina_price) * 1000;
-                        DecimalFormat df = new DecimalFormat("0.00");
-                        json.put("symbol", symbol);
-                        json.put("zb_price", zb_price);
-                        json.put("bina_price", bina_price);
-                        json.put("spred", df.format(spred));
-                        result.add(json);
+            if (constant.ZB_CONTRACT_PRICE_MAP != null && Constant.BINA_CONTRACT_PRICE_MAP != null) {
+                for (Map.Entry<String, String> entry : constant.ZB_CONTRACT_PRICE_MAP.entrySet()) {
+                    String symbol = entry.getKey();
+                    //bina交易对
+                    for (Map.Entry<String, String> entry2 : Constant.BINA_CONTRACT_PRICE_MAP.entrySet()) {
+                        if ((symbol.split("_")[0]).equals(entry2.getKey().split("USDT")[0])) {
+                            JSONObject json = new JSONObject();
+                            double zb_price = Double.valueOf(entry.getValue());
+                            double bina_price = Double.valueOf(entry2.getValue());
+                            double spred = ((zb_price - bina_price) / bina_price) * 1000;
+                            DecimalFormat df = new DecimalFormat("0.00");
+                            json.put("symbol", symbol);
+                            json.put("zb_price", zb_price);
+                            json.put("bina_price", bina_price);
+                            json.put("spred", df.format(spred));
+                            result.add(json);
+                        }
                     }
                 }
+            }
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        }
+        return jsonArraySort(result);
+    }
+
+    @Override
+    public JSONArray getZbBinaSpred() {
+
+        JSONArray result = new JSONArray();
+
+        try {
+            if (Constant.FTX_CONTRACT_PRICE_MAP != null && Constant.BINA_CONTRACT_PRICE_MAP != null) {
+                for (Map.Entry<String, String> entry : Constant.FTX_CONTRACT_PRICE_MAP.entrySet()) {
+                    String symbol = entry.getKey();
+                    for (Map.Entry<String, String> entry2 : Constant.BINA_CONTRACT_PRICE_MAP.entrySet()) {
+                        if ((symbol.split("-")[0]).equals(entry2.getKey().split("USDT")[0])) {
+                            JSONObject json = new JSONObject();
+                            double ftx_price = Double.valueOf(entry.getValue());
+                            double bina_price = Double.valueOf(entry2.getValue());
+                            double spred = ((ftx_price - bina_price) / bina_price) * 1000;
+                            DecimalFormat df = new DecimalFormat("0.00");
+                            json.put("symbol", symbol);
+                            json.put("ftx_price", ftx_price);
+                            json.put("bina_price", bina_price);
+                            json.put("spred", df.format(spred));
+                            result.add(json);
+                        }
+                    }
+                }
+
             }
         } catch (NumberFormatException e) {
             e.printStackTrace();
@@ -56,6 +90,8 @@ public class SpredServiceImpl implements SpredService {
     @Scheduled(fixedRate = 10 * 60 * 1000)
     @Override
     public void sendMessage() {
+
+        //处理zb和bian的差价
         String message = "";
         JSONArray data = getSpred();
         for (int i = 0; i < data.size(); i++) {
@@ -69,6 +105,26 @@ public class SpredServiceImpl implements SpredService {
 
             }
         }
+
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        //处理ftx和bina的差价
+        JSONArray data2 = getZbBinaSpred();
+        for (int i = 0; i < data2.size(); i++) {
+            JSONObject json = data2.getJSONObject(i);
+            String symbol = json.getString("symbol");
+            double ftx_price = json.getDoubleValue("ftx_price");
+            double bina_price = json.getDoubleValue("bina_price");
+            double spred = json.getDoubleValue("spred");
+            if (Math.abs(spred) > zb_bina) {
+                message = message + "交易对：" + symbol + "\n中币价格：" + ftx_price + "\n币安价格: " + bina_price + "\n差价：" + spred + "‰\n\n";
+
+            }
+        }
+
         if (!message.isEmpty()) {
             try {
                 Dingding.sendMessage(message);

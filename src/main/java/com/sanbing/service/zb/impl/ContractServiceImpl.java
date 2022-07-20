@@ -5,15 +5,15 @@ import com.sanbing.common.constant.Constant;
 import com.sanbing.service.zb.ContractService;
 import handler.market.AllTickerHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-
-import javax.annotation.PostConstruct;
 
 @Slf4j
 @Service("ZBContractService")
 public class ContractServiceImpl implements ContractService {
 
-    @PostConstruct
+    //一个小时订阅一次
+    @Scheduled(fixedRate = 1000 * 60 * 60)
     @Override
     public void saveContractPrice() {
 

@@ -31,4 +31,17 @@ public class SpredController {
             return new FormData(500, 0, "获取现货差价失败: " + e.getMessage(), null);
         }
     }
+
+    @GetMapping("getZbBinaSpred")
+    public FormData getZbBinaSpred() {
+        try {
+            JSONArray result = spredService.getZbBinaSpred();
+            return new FormData(0, result.size(), "success", result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error(e.getMessage());
+            return new FormData(500, 0, "获取现货差价失败: " + e.getMessage(), null);
+        }
+    }
+
 }
